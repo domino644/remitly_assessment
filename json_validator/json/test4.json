@@ -7,7 +7,43 @@
           "Sid": "IamListAccess",
           "Effect": "Allow",
           "Action": ["iam:ListRoles", "iam:ListUsers"],
-          "Resource": " *"
+          "Resource": "user"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "user"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "user"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "user"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "user"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "user"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "*"
         }
       ]
     }
