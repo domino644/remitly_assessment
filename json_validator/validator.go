@@ -140,20 +140,20 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 	return statements, nil
 }
 
-func Verify(path string) bool {
+func Verify(path string) (bool, error) {
 	byteValue := readJSON(path)
 	if ok, err := validateJSON(byteValue); !ok {
-		panic(err)
+		return false, err
 	}
 	rolePolicy, err := parseJSONToRolePolicy(byteValue)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 	statements, err := extractStatements(rolePolicy)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
-	return checkForAsterrisk(statements)
+	return checkForAsterrisk(statements), nil
 }
 
 func main() {
@@ -164,5 +164,9 @@ func main() {
 		panic(err)
 	}
 	line = strings.TrimSpace(line)
-	fmt.Println(Verify(line))
+	output, err := Verify(line)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(output)
 }
