@@ -1,0 +1,38 @@
+{
+    "PolicyName": "root",
+    "PolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "aa",
+          "Effect": "dupa",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": ""
+        },
+        {
+            "Sid": "bb",
+            "Effect": "Allow",
+            "Action": ["iam:ListRoles", "iam:ListUsers"],
+            "Resource": "*"
+          },
+          {
+            "Sid": "cc",
+            "Effect": "Allow",
+            "Action": ["iam:ListRoles", "iam:ListUsers"],
+            "Resource": "*"
+          },
+          {
+            "Sid": "dd",
+            "Effect": "Allow",
+            "Action": ["iam:ListRoles", "iam:ListUsers"],
+            "Resource": "*"
+          },
+          {
+            "Sid": "*",
+            "Effect": "*",
+            "Action": ["iam:ListRoles", "iam:ListUsers"],
+            "Resource": "*"
+          }]
+    }
+  }
+  
