@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestValidator(t *testing.T) {
+func TestVerify(t *testing.T) {
 	data := []struct {
 		in   string
 		want bool
@@ -17,7 +17,7 @@ func TestValidator(t *testing.T) {
 	}
 
 	for _, d := range data {
-		if got := Validate(d.in); got != d.want {
+		if got := Verify(d.in); got != d.want {
 			t.Errorf("JSONValidator(%#v) == %#v want %#v", d.in, got, d.want)
 		}
 	}
