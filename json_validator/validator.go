@@ -52,16 +52,13 @@ func validateEffect(effect string) (bool, error) {
 	return true, nil
 }
 
-func checkForAsterrisk(statements []Statement) (bool, error) {
+func checkForAsterrisk(statements []Statement) bool {
 	for _, stmt := range statements {
-		if ok, err := validateEffect(stmt.Effect); !ok {
-			return false, err
-		}
 		if stmt.Resource == "*" {
-			return false, nil
+			return false
 		}
 	}
-	return true, nil
+	return true
 }
 
 func readJSON(path string) []byte {
@@ -121,7 +118,6 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 			}
 			statements = append(statements, statement)
 		}
-		return statements, nil
 	case map[string]interface{}:
 		var statement Statement
 		statement.Effect = stmt["Effect"].(string)
@@ -133,13 +129,18 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 			}
 		}
 		statements = append(statements, statement)
-		return statements, nil
 	default:
 		return nil, fmt.Errorf("statements has to be either type of array or object but is %s", stmt)
 	}
+	for _, stmt := range statements {
+		if ok, err := validateEffect(stmt.Effect); !ok {
+			return nil, err
+		}
+	}
+	return statements, nil
 }
 
-func Validate(path string) bool {
+func Verify(path string) bool {
 	byteValue := readJSON(path)
 	if ok, err := validateJSON(byteValue); !ok {
 		panic(err)
@@ -152,11 +153,7 @@ func Validate(path string) bool {
 	if err != nil {
 		panic(err)
 	}
-	output, err := checkForAsterrisk(statements)
-	if err != nil {
-		panic(err)
-	}
-	return output
+	return checkForAsterrisk(statements)
 }
 
 func main() {
@@ -167,5 +164,5 @@ func main() {
 		panic(err)
 	}
 	line = strings.TrimSpace(line)
-	fmt.Println(Validate(line))
+	fmt.Println(Verify(line))
 }
