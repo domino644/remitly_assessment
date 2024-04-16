@@ -6,7 +6,7 @@
         {
           "Sid": "IamListAccess",
           "Effect": "Allow",
-          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Action": "iam:ListRoles",
           "Resource": "***"
         }
       ]

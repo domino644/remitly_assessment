@@ -22,10 +22,10 @@ type PolicyDocument struct {
 }
 
 type Statement struct {
-	Sid      string   `json:"Sid"`
-	Effect   string   `json:"Effect"`
-	Action   []string `json:"Action"`
-	Resource string   `json:"Resource"`
+	Sid      string      `json:"Sid"`
+	Effect   string      `json:"Effect"`
+	Action   interface{} `json:"Action"`
+	Resource interface{} `json:"Resource"`
 }
 
 func validatePolicyName(policyName string) (bool, error) {
@@ -54,8 +54,10 @@ func validateEffect(effect string) (bool, error) {
 
 func checkForAsterrisk(statements []Statement) bool {
 	for _, stmt := range statements {
-		if stmt.Resource == "*" {
-			return false
+		for _, res := range stmt.Resource.([]string) {
+			if res == "*" {
+				return false
+			}
 		}
 	}
 	return true
@@ -101,6 +103,44 @@ func validateJSON(byteValue []byte) (bool, error) {
 
 }
 
+func extractResources(resourcesRaw interface{}) ([]string, error) {
+	var output []string
+	switch res := resourcesRaw.(type) {
+	case []interface{}:
+		for _, r := range res {
+			t, ok := r.(string)
+			if !ok {
+				return nil, fmt.Errorf("values of Resource has to be type of string but are %s", t)
+			}
+			output = append(output, t)
+		}
+	case string:
+		output = append(output, res)
+	default:
+		return nil, fmt.Errorf("resource has to be either string or array of string but is %s", res)
+	}
+	return output, nil
+}
+
+func extractActions(actionsRaw interface{}) ([]string, error) {
+	var output []string
+	switch act := actionsRaw.(type) {
+	case []interface{}:
+		for _, a := range act {
+			t, ok := a.(string)
+			if !ok {
+				return nil, fmt.Errorf("values of Action has to be type of string but are %s", t)
+			}
+			output = append(output, t)
+		}
+	case string:
+		output = append(output, act)
+	default:
+		return nil, fmt.Errorf("action has to be either string or array of string but is %s", act)
+	}
+	return output, nil
+}
+
 func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 	var statements []Statement
 	switch stmt := rolePolicy.PolicyDocument.Statement.(type) {
@@ -114,28 +154,23 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 			}
 			statement.Effect = e
 
-			r, ok := tmp["Resource"].(string)
-			if !ok {
-				return nil, fmt.Errorf("value Resource has to be string but is %v", tmp["Resource"])
+			res, err := extractResources(tmp["Resource"])
+			if err != nil {
+				return nil, err
 			}
-			statement.Resource = r
+			statement.Resource = res
 
 			s, ok := tmp["Sid"].(string)
 			if !ok {
 				return nil, fmt.Errorf("value Sid has to be string but is %v", tmp["Sid"])
 			}
 			statement.Sid = s
-			if action, ok := tmp["Action"].([]interface{}); ok {
-				for _, act := range action {
-					a, ok := act.(string)
-					if !ok {
-						return nil, fmt.Errorf("values of Action has to be string but are %v", act)
-					}
-					statement.Action = append(statement.Action, a)
-				}
-			} else {
-				return nil, fmt.Errorf("value Action has to be []interface{} but is %v", tmp["Action"])
+
+			act, err := extractActions(tmp["Action"])
+			if err != nil {
+				return nil, err
 			}
+			statement.Action = act
 			statements = append(statements, statement)
 		}
 	case map[string]interface{}:
@@ -147,28 +182,23 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 		}
 		statement.Effect = e
 
-		r, ok := stmt["Resource"].(string)
-		if !ok {
-			return nil, fmt.Errorf("value Resource has to be string but is %v", stmt["Resource"])
+		res, err := extractResources(stmt["Resource"])
+		if err != nil {
+			return nil, err
 		}
-		statement.Resource = r
+		statement.Resource = res
 
 		s, ok := stmt["Sid"].(string)
 		if !ok {
 			return nil, fmt.Errorf("value Sid has to be string but is %v", stmt["Sid"])
 		}
 		statement.Sid = s
-		if action, ok := stmt["Action"].([]interface{}); ok {
-			for _, act := range action {
-				a, ok := act.(string)
-				if !ok {
-					return nil, fmt.Errorf("values of Action has to be string but are %v", act)
-				}
-				statement.Action = append(statement.Action, a)
-			}
-		} else {
-			return nil, fmt.Errorf("value Action has to be []interface{} but is %v", stmt["Action"])
+
+		act, err := extractActions(stmt["Action"])
+		if err != nil {
+			return nil, err
 		}
+		statement.Action = act
 		statements = append(statements, statement)
 	default:
 		return nil, fmt.Errorf("statements has to be either type of array or object but is %s", stmt)

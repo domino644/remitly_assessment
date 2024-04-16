@@ -12,7 +12,7 @@ func TestVerifyLogic(t *testing.T) {
 	}{
 		{"./json/test1.json", false},
 		{"./json/test2.json", true},
-		{"./json/test3.json", true},
+		{"./json/test3.json", false},
 		{"./json/test4.json", false},
 		{"./json/test5.json", true},
 		{"./json/test6.json", false},
