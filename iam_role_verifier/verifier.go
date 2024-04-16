@@ -12,19 +12,19 @@ import (
 )
 
 type RolePolicy struct {
-	PolicyName     string         `json:"PolicyName"`
-	PolicyDocument PolicyDocument `json:"PolicyDocument"`
+	PolicyName     string         `json:"PolicyName"`     //required
+	PolicyDocument PolicyDocument `json:"PolicyDocument"` //required
 }
 
 type PolicyDocument struct {
-	Version   string      `json:"Version"`
-	Statement interface{} `json:"Statement"`
+	Version   string      `json:"Version"`   //required
+	Statement interface{} `json:"Statement"` //required
 }
 
 type Statement struct {
 	Sid      string      `json:"Sid"`
-	Effect   string      `json:"Effect"`
-	Action   interface{} `json:"Action"`
+	Effect   string      `json:"Effect"` //required
+	Action   interface{} `json:"Action"` //required
 	Resource interface{} `json:"Resource"`
 }
 
@@ -77,39 +77,6 @@ func validateJSON(byteValue []byte) (bool, error) {
 
 }
 
-func checkForAsterrisk(statements []Statement) bool {
-	for _, stmt := range statements {
-		for _, res := range stmt.Resource.([]string) {
-			if res == "*" {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func mustReadJSON(path string) []byte {
-	jsonFile, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer jsonFile.Close()
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		panic(err)
-	}
-	return byteValue
-}
-
-func parseJSONToRolePolicy(byteValue []byte) (*RolePolicy, error) {
-	var rolePolicy RolePolicy
-	err := json.Unmarshal(byteValue, &rolePolicy)
-	if err != nil {
-		return nil, err
-	}
-	return &rolePolicy, nil
-}
-
 func extractResources(resourcesRaw interface{}) ([]string, error) {
 	var output []string
 	switch res := resourcesRaw.(type) {
@@ -130,6 +97,10 @@ func extractResources(resourcesRaw interface{}) ([]string, error) {
 }
 
 func extractActions(actionsRaw interface{}) ([]string, error) {
+	//if Actions are not given empty array is assigned
+	if actionsRaw == nil {
+		return []string{}, nil
+	}
 	var output []string
 	switch act := actionsRaw.(type) {
 	case []interface{}:
@@ -161,15 +132,21 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 			}
 			statement.Effect = e
 
+			//Resource is not required
 			res, err := extractResources(tmp["Resource"])
 			if err != nil {
 				return nil, err
 			}
 			statement.Resource = res
 
+			//Sid is not required
 			s, ok := tmp["Sid"].(string)
 			if !ok {
-				return nil, fmt.Errorf("value Sid has to be string but is %v", tmp["Sid"])
+				if tmp["Sid"] != nil {
+					return nil, fmt.Errorf("value Sid has to be string but is %v", tmp["Sid"])
+				}
+				//if Sid is not given empty string is assigned
+				s = ""
 			}
 			statement.Sid = s
 
@@ -189,15 +166,21 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 		}
 		statement.Effect = e
 
+		//Resource is not required
 		res, err := extractResources(stmt["Resource"])
 		if err != nil {
 			return nil, err
 		}
 		statement.Resource = res
 
+		//Sid is not required
 		s, ok := stmt["Sid"].(string)
 		if !ok {
-			return nil, fmt.Errorf("value Sid has to be string but is %v", stmt["Sid"])
+			if stmt["Sid"] != nil {
+				return nil, fmt.Errorf("value Sid has to be string but is %v", stmt["Sid"])
+			}
+			//if Sid is not given empty string is assigned
+			s = ""
 		}
 		statement.Sid = s
 
@@ -216,6 +199,39 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 		}
 	}
 	return statements, nil
+}
+
+func checkForAsterrisk(statements []Statement) bool {
+	for _, stmt := range statements {
+		for _, res := range stmt.Resource.([]string) {
+			if res == "*" {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func mustReadJSON(path string) []byte {
+	jsonFile, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer jsonFile.Close()
+	byteValue, err := io.ReadAll(jsonFile)
+	if err != nil {
+		panic(err)
+	}
+	return byteValue
+}
+
+func parseJSONToRolePolicy(byteValue []byte) (*RolePolicy, error) {
+	var rolePolicy RolePolicy
+	err := json.Unmarshal(byteValue, &rolePolicy)
+	if err != nil {
+		return nil, err
+	}
+	return &rolePolicy, nil
 }
 
 func validatePolicyName(policyName string) (bool, error) {

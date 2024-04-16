@@ -22,7 +22,6 @@
         "Resource": " aa*"
       },
       {
-        "Sid": "IamListAccess",
         "Effect": "Allow",
         "Action": ["iam:ListRoles", "iam:ListUsers"],
         "Resource": "   dsadsadsa  *"
