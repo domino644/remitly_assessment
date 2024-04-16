@@ -34,7 +34,7 @@ func validatePolicyName(policyName string) (bool, error) {
 	}
 	re := regexp.MustCompile(`[\w+=,.@-]+`)
 	if !re.Match([]byte(policyName)) {
-		return false, errors.New("PolicyName doesn't match wanted format")
+		return false, errors.New("PolicyName doesn't match wanted format: `[\\w+=,.@-]+`")
 	}
 	return true, nil
 }
@@ -61,7 +61,7 @@ func checkForAsterrisk(statements []Statement) bool {
 	return true
 }
 
-func readJSON(path string) []byte {
+func mustReadJSON(path string) []byte {
 	jsonFile, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -108,25 +108,66 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 		for _, s := range stmt {
 			tmp := s.(map[string]interface{})
 			var statement Statement
-			statement.Effect = tmp["Effect"].(string)
-			statement.Resource = tmp["Resource"].(string)
-			statement.Sid = tmp["Sid"].(string)
+			e, ok := tmp["Effect"].(string)
+			if !ok {
+				return nil, fmt.Errorf("value Effect has to be string but is %v", tmp["Effect"])
+			}
+			statement.Effect = e
+
+			r, ok := tmp["Resource"].(string)
+			if !ok {
+				return nil, fmt.Errorf("value Resource has to be string but is %v", tmp["Resource"])
+			}
+			statement.Resource = r
+
+			s, ok := tmp["Sid"].(string)
+			if !ok {
+				return nil, fmt.Errorf("value Sid has to be string but is %v", tmp["Sid"])
+			}
+			statement.Sid = s
 			if action, ok := tmp["Action"].([]interface{}); ok {
-				for _, a := range action {
-					statement.Action = append(statement.Action, a.(string))
+				for _, act := range action {
+					a, ok := act.(string)
+					if !ok {
+						return nil, fmt.Errorf("values of Action has to be string but are %v", act)
+					}
+					statement.Action = append(statement.Action, a)
 				}
+			} else {
+				return nil, fmt.Errorf("value Action has to be []interface{} but is %v", tmp["Action"])
 			}
 			statements = append(statements, statement)
 		}
 	case map[string]interface{}:
 		var statement Statement
-		statement.Effect = stmt["Effect"].(string)
-		statement.Resource = stmt["Resource"].(string)
-		statement.Sid = stmt["Sid"].(string)
+
+		e, ok := stmt["Effect"].(string)
+		if !ok {
+			return nil, fmt.Errorf("value Effect has to be string but is %v", stmt["Effect"])
+		}
+		statement.Effect = e
+
+		r, ok := stmt["Resource"].(string)
+		if !ok {
+			return nil, fmt.Errorf("value Resource has to be string but is %v", stmt["Resource"])
+		}
+		statement.Resource = r
+
+		s, ok := stmt["Sid"].(string)
+		if !ok {
+			return nil, fmt.Errorf("value Sid has to be string but is %v", stmt["Sid"])
+		}
+		statement.Sid = s
 		if action, ok := stmt["Action"].([]interface{}); ok {
-			for _, a := range action {
-				statement.Action = append(statement.Action, a.(string))
+			for _, act := range action {
+				a, ok := act.(string)
+				if !ok {
+					return nil, fmt.Errorf("values of Action has to be string but are %v", act)
+				}
+				statement.Action = append(statement.Action, a)
 			}
+		} else {
+			return nil, fmt.Errorf("value Action has to be []interface{} but is %v", stmt["Action"])
 		}
 		statements = append(statements, statement)
 	default:
@@ -141,7 +182,7 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 }
 
 func Verify(path string) (bool, error) {
-	byteValue := readJSON(path)
+	byteValue := mustReadJSON(path)
 	if ok, err := validateJSON(byteValue); !ok {
 		return false, err
 	}

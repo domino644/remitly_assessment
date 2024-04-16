@@ -1,3 +1,3 @@
-module iam_role_verifier
+module json_validator
 
 go 1.22.1
