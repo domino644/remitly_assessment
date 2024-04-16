@@ -28,28 +28,53 @@ type Statement struct {
 	Resource interface{} `json:"Resource"`
 }
 
-func validatePolicyName(policyName string) (bool, error) {
-	if len(policyName) < 1 || len(policyName) > 128 {
-		return false, fmt.Errorf("PolicyName length has to be between 1 and 128 but is %v", len(policyName))
+func main() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Please provide path to JSON file to check: ")
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		panic(err)
 	}
-	re := regexp.MustCompile(`[\w+=,.@-]+`)
-	if !re.Match([]byte(policyName)) {
-		return false, errors.New("PolicyName doesn't match wanted format: `[\\w+=,.@-]+`")
+	line = strings.TrimSpace(line)
+	output, err := Verify(line)
+	if err != nil {
+		panic(err)
 	}
-	return true, nil
-}
-func validateVersion(version string) (bool, error) {
-	if version != "2012-10-17" && version != "2008-10-17" {
-		return false, fmt.Errorf("accepted versions are: 2012-10-17 and 2008-10-17 but %s was given", version)
-	}
-	return true, nil
+	fmt.Println(output)
 }
 
-func validateEffect(effect string) (bool, error) {
-	if effect != "Allow" && effect != "Deny" {
-		return false, fmt.Errorf("accepted effects are: Allow and Deny but %s was given", effect)
+func Verify(path string) (bool, error) {
+	byteValue := mustReadJSON(path)
+	if ok, err := validateJSON(byteValue); !ok {
+		return false, err
+	}
+	rolePolicy, err := parseJSONToRolePolicy(byteValue)
+	if err != nil {
+		return false, err
+	}
+	statements, err := extractStatements(rolePolicy)
+	if err != nil {
+		return false, err
+	}
+	return checkForAsterrisk(statements), nil
+}
+
+func validateJSON(byteValue []byte) (bool, error) {
+	if !json.Valid(byteValue) {
+		return false, errors.New("invalid JSON")
+	}
+	rolePolicy, err := parseJSONToRolePolicy(byteValue)
+	if err != nil {
+		return false, err
+	}
+	if ok, err := validatePolicyName(rolePolicy.PolicyName); !ok {
+		return false, err
+	}
+	if ok, err := validateVersion(rolePolicy.PolicyDocument.Version); !ok {
+		return false, err
 	}
 	return true, nil
+
 }
 
 func checkForAsterrisk(statements []Statement) bool {
@@ -83,24 +108,6 @@ func parseJSONToRolePolicy(byteValue []byte) (*RolePolicy, error) {
 		return nil, err
 	}
 	return &rolePolicy, nil
-}
-
-func validateJSON(byteValue []byte) (bool, error) {
-	if !json.Valid(byteValue) {
-		return false, errors.New("invalid JSON")
-	}
-	rolePolicy, err := parseJSONToRolePolicy(byteValue)
-	if err != nil {
-		return false, err
-	}
-	if ok, err := validatePolicyName(rolePolicy.PolicyName); !ok {
-		return false, err
-	}
-	if ok, err := validateVersion(rolePolicy.PolicyDocument.Version); !ok {
-		return false, err
-	}
-	return true, nil
-
 }
 
 func extractResources(resourcesRaw interface{}) ([]string, error) {
@@ -211,33 +218,26 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 	return statements, nil
 }
 
-func Verify(path string) (bool, error) {
-	byteValue := mustReadJSON(path)
-	if ok, err := validateJSON(byteValue); !ok {
-		return false, err
+func validatePolicyName(policyName string) (bool, error) {
+	if len(policyName) < 1 || len(policyName) > 128 {
+		return false, fmt.Errorf("PolicyName length has to be between 1 and 128 but is %v", len(policyName))
 	}
-	rolePolicy, err := parseJSONToRolePolicy(byteValue)
-	if err != nil {
-		return false, err
+	re := regexp.MustCompile(`[\w+=,.@-]+`)
+	if !re.Match([]byte(policyName)) {
+		return false, errors.New("PolicyName doesn't match wanted format: `[\\w+=,.@-]+`")
 	}
-	statements, err := extractStatements(rolePolicy)
-	if err != nil {
-		return false, err
+	return true, nil
+}
+func validateVersion(version string) (bool, error) {
+	if version != "2012-10-17" && version != "2008-10-17" {
+		return false, fmt.Errorf("accepted versions are: 2012-10-17 and 2008-10-17 but %s was given", version)
 	}
-	return checkForAsterrisk(statements), nil
+	return true, nil
 }
 
-func main() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Please provide path to JSON file to check: ")
-	line, err := reader.ReadString('\n')
-	if err != nil {
-		panic(err)
+func validateEffect(effect string) (bool, error) {
+	if effect != "Allow" && effect != "Deny" {
+		return false, fmt.Errorf("accepted effects are: Allow and Deny but %s was given", effect)
 	}
-	line = strings.TrimSpace(line)
-	output, err := Verify(line)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(output)
+	return true, nil
 }
