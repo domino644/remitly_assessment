@@ -19,3 +19,9 @@
 
 # Go workspace file
 go.work
+
+#MAC_OS
+.DS_Store
+
+#VSC
+.vscode
