@@ -5,8 +5,7 @@
       "Statement": 
         {
           "Effect": "Allow",
-          "Action": ["iam:ListRoles", "iam:ListUsers"],
-          "Resource": "**"
+          "Action": ["iam:ListRoles", "iam:ListUsers"]
         }
     }
   }

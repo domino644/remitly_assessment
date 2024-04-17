@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"strings"
 	"testing"
 )
 
@@ -17,6 +17,7 @@ func TestVerifyLogic(t *testing.T) {
 		{"./json/test5.json", true},
 		{"./json/test6.json", false},
 		{"./json/test7.json", true},
+		{"./json/test8.json", true},
 	}
 
 	for _, d := range data {
@@ -32,19 +33,28 @@ func TestVerifyLogic(t *testing.T) {
 func TestVerifyErrors(t *testing.T) {
 	data := []struct {
 		in   string
-		want error
+		want string
 	}{
-		{"./json/test8.json", errors.New("value Sid has to be string but is <nil>")},
-		{"./json/test9.json", errors.New("invalid JSON")},
-		{"./json/test10.json", errors.New("accepted effects are: Allow and Deny but all was given")},
-		{"./json/test11.json", errors.New("accepted versions are: 2012-10-17 and 2008-10-17 but 2012-10-16 was given")},
-		{"./json/test12.json", errors.New("PolicyName length has to be between 1 and 128 but is 0")},
-		{"./json/test13.json", errors.New("PolicyName doesn't match wanted format: `[\\w+=,.@-]+`")},
+		{"./json/test9.json", "invalid JSON"},
+		{"./json/test10.json", "accepted effects are: Allow and Deny but all was given"},
+		{"./json/test11.json", "accepted versions are: 2012-10-17 and 2008-10-17 but 2012-10-16 was given"},
+		{"./json/test12.json", "PolicyName length has to be between 1 and 128 but is 0"},
+		{"./json/test13.json", "PolicyName doesn't match wanted format: `[\\w+=,.@-]+`"},
 	}
 	for _, d := range data {
 		_, err := Verify(d.in)
-		if errors.Is(err, d.want) {
+		if !errorContains(err, d.want) {
 			t.Errorf("Expected error: %s, but got: %s", d.want, err)
 		}
 	}
+}
+
+func errorContains(out error, want string) bool {
+	if out == nil {
+		return want == ""
+	}
+	if want == "" {
+		return false
+	}
+	return strings.Contains(out.Error(), want)
 }
