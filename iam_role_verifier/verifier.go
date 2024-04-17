@@ -77,44 +77,24 @@ func validateJSON(byteValue []byte) (bool, error) {
 
 }
 
-func extractResources(resourcesRaw interface{}) ([]string, error) {
-	var output []string
-	switch res := resourcesRaw.(type) {
-	case []interface{}:
-		for _, r := range res {
-			t, ok := r.(string)
-			if !ok {
-				return nil, fmt.Errorf("values of Resource has to be type of string but are %s", t)
-			}
-			output = append(output, t)
-		}
-	case string:
-		output = append(output, res)
-	default:
-		return nil, fmt.Errorf("resource has to be either string or array of string but is %s", res)
-	}
-	return output, nil
-}
-
-func extractActions(actionsRaw interface{}) ([]string, error) {
-	//if Actions are not given empty array is assigned
-	if actionsRaw == nil {
+func extractValues(valuesRaw interface{}, name string) ([]string, error) {
+	if valuesRaw == nil {
 		return []string{}, nil
 	}
 	var output []string
-	switch act := actionsRaw.(type) {
+	switch val := valuesRaw.(type) {
 	case []interface{}:
-		for _, a := range act {
-			t, ok := a.(string)
+		for _, v := range val {
+			t, ok := v.(string)
 			if !ok {
-				return nil, fmt.Errorf("values of Action has to be type of string but are %s", t)
+				return nil, fmt.Errorf("values of %s has to be type of string but are %s", name, t)
 			}
 			output = append(output, t)
 		}
 	case string:
-		output = append(output, act)
+		output = append(output, val)
 	default:
-		return nil, fmt.Errorf("action has to be either string or array of string but is %s", act)
+		return nil, fmt.Errorf("%s has to be either string or array of strings but is %s", name, val)
 	}
 	return output, nil
 }
@@ -133,7 +113,7 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 			statement.Effect = e
 
 			//Resource is not required
-			res, err := extractResources(tmp["Resource"])
+			res, err := extractValues(tmp["Resource"], "Resource")
 			if err != nil {
 				return nil, err
 			}
@@ -150,7 +130,7 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 			}
 			statement.Sid = s
 
-			act, err := extractActions(tmp["Action"])
+			act, err := extractValues(tmp["Action"], "Action")
 			if err != nil {
 				return nil, err
 			}
@@ -167,7 +147,7 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 		statement.Effect = e
 
 		//Resource is not required
-		res, err := extractResources(stmt["Resource"])
+		res, err := extractValues(stmt["Resource"], "Resource")
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +164,7 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 		}
 		statement.Sid = s
 
-		act, err := extractActions(stmt["Action"])
+		act, err := extractValues(stmt["Action"], "Action")
 		if err != nil {
 			return nil, err
 		}
