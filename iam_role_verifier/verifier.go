@@ -105,71 +105,18 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 	case []interface{}:
 		for _, s := range stmt {
 			tmp := s.(map[string]interface{})
-			var statement Statement
-			e, ok := tmp["Effect"].(string)
-			if !ok {
-				return nil, fmt.Errorf("value Effect has to be string but is %v", tmp["Effect"])
-			}
-			statement.Effect = e
-
-			//Resource is not required
-			res, err := extractValues(tmp["Resource"], "Resource")
+			statement, err := parseStatement(tmp)
 			if err != nil {
 				return nil, err
 			}
-			statement.Resource = res
-
-			//Sid is not required
-			s, ok := tmp["Sid"].(string)
-			if !ok {
-				if tmp["Sid"] != nil {
-					return nil, fmt.Errorf("value Sid has to be string but is %v", tmp["Sid"])
-				}
-				//if Sid is not given empty string is assigned
-				s = ""
-			}
-			statement.Sid = s
-
-			act, err := extractValues(tmp["Action"], "Action")
-			if err != nil {
-				return nil, err
-			}
-			statement.Action = act
-			statements = append(statements, statement)
+			statements = append(statements, *statement)
 		}
 	case map[string]interface{}:
-		var statement Statement
-
-		e, ok := stmt["Effect"].(string)
-		if !ok {
-			return nil, fmt.Errorf("value Effect has to be string but is %v", stmt["Effect"])
-		}
-		statement.Effect = e
-
-		//Resource is not required
-		res, err := extractValues(stmt["Resource"], "Resource")
+		statement, err := parseStatement(stmt)
 		if err != nil {
 			return nil, err
 		}
-		statement.Resource = res
-
-		//Sid is not required
-		s, ok := stmt["Sid"].(string)
-		if !ok {
-			if stmt["Sid"] != nil {
-				return nil, fmt.Errorf("value Sid has to be string but is %v", stmt["Sid"])
-			}
-			//if Sid is not given empty string is assigned
-			s = ""
-		}
-		statement.Sid = s
-
-		act, err := extractValues(stmt["Action"], "Action")
-		if err != nil {
-			return nil, err
-		}
-		statement.Action = act
-		statements = append(statements, statement)
+		statements = append(statements, *statement)
 	default:
 		return nil, fmt.Errorf("statements has to be either type of array or object but is %s", stmt)
 	}
@@ -179,6 +126,40 @@ func extractStatements(rolePolicy *RolePolicy) ([]Statement, error) {
 		}
 	}
 	return statements, nil
+}
+
+func parseStatement(stmt map[string]interface{}) (*Statement, error) {
+	var statement Statement
+	e, ok := stmt["Effect"].(string)
+	if !ok {
+		return nil, fmt.Errorf("value Effect has to be string but is %v", stmt["Effect"])
+	}
+	statement.Effect = e
+
+	//Resource is not required
+	res, err := extractValues(stmt["Resource"], "Resource")
+	if err != nil {
+		return nil, err
+	}
+	statement.Resource = res
+
+	//Sid is not required
+	s, ok := stmt["Sid"].(string)
+	if !ok {
+		if stmt["Sid"] != nil {
+			return nil, fmt.Errorf("value Sid has to be string but is %v", stmt["Sid"])
+		}
+		//if Sid is not given empty string is assigned
+		s = ""
+	}
+	statement.Sid = s
+
+	act, err := extractValues(stmt["Action"], "Action")
+	if err != nil {
+		return nil, err
+	}
+	statement.Action = act
+	return &statement, nil
 }
 
 func checkForAsterrisk(statements []Statement) bool {
