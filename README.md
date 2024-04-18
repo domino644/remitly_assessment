@@ -37,6 +37,7 @@ To execute program use
 go run verifier.go
 ```
 Then paste path to JSON file you want to check and hit enter
+
 To test use
 ```
 go test
