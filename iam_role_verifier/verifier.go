@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -87,14 +88,14 @@ func extractValues(valuesRaw interface{}, name string) ([]string, error) {
 		for _, v := range val {
 			t, ok := v.(string)
 			if !ok {
-				return nil, fmt.Errorf("values of %s has to be type of string but are %s", name, t)
+				return nil, fmt.Errorf("values of %s has to be type of string but are %v", name, reflect.TypeOf(v))
 			}
 			output = append(output, t)
 		}
 	case string:
 		output = append(output, val)
 	default:
-		return nil, fmt.Errorf("%s has to be either string or array of strings but is %s", name, val)
+		return nil, fmt.Errorf("%s has to be either string or array of strings but is %v", name, reflect.TypeOf(val))
 	}
 	return output, nil
 }
@@ -132,7 +133,7 @@ func parseStatement(stmt map[string]interface{}) (*Statement, error) {
 	var statement Statement
 	e, ok := stmt["Effect"].(string)
 	if !ok {
-		return nil, fmt.Errorf("value Effect has to be string but is %v", stmt["Effect"])
+		return nil, fmt.Errorf("value Effect has to be string but is %v", reflect.TypeOf(stmt["Effect"]))
 	}
 	statement.Effect = e
 
@@ -147,7 +148,7 @@ func parseStatement(stmt map[string]interface{}) (*Statement, error) {
 	s, ok := stmt["Sid"].(string)
 	if !ok {
 		if stmt["Sid"] != nil {
-			return nil, fmt.Errorf("value Sid has to be string but is %v", stmt["Sid"])
+			return nil, fmt.Errorf("value Sid has to be string but is %v", reflect.TypeOf(stmt["Sid"]))
 		}
 		//if Sid is not given empty string is assigned
 		s = ""

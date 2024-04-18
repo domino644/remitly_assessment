@@ -1,0 +1,12 @@
+{
+    "PolicyName": "aa",
+    "PolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": 
+        {
+          "Effect": "Deny",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": 1222
+        }
+    }
+  }

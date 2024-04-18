@@ -18,6 +18,7 @@ func TestVerifyLogic(t *testing.T) {
 		{"./json/test6.json", false},
 		{"./json/test7.json", true},
 		{"./json/test8.json", true},
+		{"./json/test14.json", false},
 	}
 
 	for _, d := range data {
@@ -40,6 +41,10 @@ func TestVerifyErrors(t *testing.T) {
 		{"./json/test11.json", "accepted versions are: 2012-10-17 and 2008-10-17 but 2012-10-16 was given"},
 		{"./json/test12.json", "PolicyName length has to be between 1 and 128 but is 0"},
 		{"./json/test13.json", "PolicyName doesn't match wanted format: `[\\w+=,.@-]+`"},
+		{"./json/test15.json", "value Sid has to be string but is float64"},
+		{"./json/test16.json", "value Effect has to be string but is map[string]interface {}"},
+		{"./json/test17.json", "Resource has to be either string or array of strings but is float64"},
+		{"./json/test18.json", "cannot unmarshal number into Go struct field RolePolicy.PolicyName of type string"},
 	}
 	for _, d := range data {
 		_, err := Verify(d.in)

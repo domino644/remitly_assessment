@@ -1,0 +1,12 @@
+{
+    "PolicyName": "aa",
+    "PolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": 
+        {
+          "Effect": {"x": 1},
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "**"
+        }
+    }
+  }

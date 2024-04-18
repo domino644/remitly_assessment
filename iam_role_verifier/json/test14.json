@@ -1,0 +1,50 @@
+{
+    "PolicyName": "root",
+    "PolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "1"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "aaaa"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": " aa*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": "   dsadsadsa  *"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": " g  fq dwq *"
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": [" dsa  saasd  *","dsadasdas"]
+        },
+        {
+          "Sid": "IamListAccess",
+          "Effect": "Allow",
+          "Action": ["iam:ListRoles", "iam:ListUsers"],
+          "Resource": ["     * *","dsadas","aaaaa","*"]
+        }
+      ]
+    }
+  }
+  
